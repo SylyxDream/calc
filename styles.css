@@ -1,0 +1,517 @@
+/* ==========================================================================
+   Base Configuration and Reset
+   ========================================================================== */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #f0f4f8 0%, #e2e8f0 100%);
+    padding: 20px;
+    transition: background 0.3s ease;
+}
+
+/* ==========================================================================
+   Main Container
+   ========================================================================== */
+
+.calculator-container {
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: flex-start;
+}
+
+.calculator {
+    background: white;
+    border-radius: 24px;
+    padding: 24px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    max-width: 320px;
+    width: 100%;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.calculator:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+}
+
+/* ==========================================================================
+   Display Area
+   ========================================================================== */
+
+.display {
+    margin-bottom: 24px;
+    position: relative;
+}
+
+#display {
+    width: 100%;
+    height: 64px;
+    font-size: 32px;
+    text-align: right;
+    border: none;
+    background: #f8fafc;
+    border-radius: 12px;
+    padding: 0 16px;
+    color: #1e293b;
+    font-weight: 400;
+    outline: none;
+    transition: background 0.2s ease, color 0.2s ease;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+#display:focus {
+    background: #f1f5f9;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+}
+
+/* ==========================================================================
+   Button Grid
+   ========================================================================== */
+
+.buttons {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+/* ==========================================================================
+   Button Base Styles
+   ========================================================================== */
+
+.btn {
+    height: 56px;
+    border: none;
+    border-radius: 12px;
+    font-size: 20px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    outline: none;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Button hover effect */
+.btn::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    transform: translate(-50%, -50%);
+    transition: width 0.3s, height 0.3s;
+}
+
+.btn:active::before {
+    width: 120%;
+    height: 120%;
+}
+
+.btn:active {
+    transform: scale(0.98);
+}
+
+/* ==========================================================================
+   Button Types
+   ========================================================================== */
+
+/* Number buttons */
+.btn.number {
+    background: #f1f5f9;
+    color: #475569;
+    border: 1px solid #e2e8f0;
+}
+
+.btn.number:hover {
+    background: #e2e8f0;
+    border-color: #cbd5e1;
+}
+
+/* Operator buttons */
+.btn.operator {
+    background: #6366f1;
+    color: white;
+    border: 1px solid transparent;
+}
+
+.btn.operator:hover {
+    background: #4f46e5;
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+}
+
+/* Clear button */
+.btn.clear {
+    background: #ef4444;
+    color: white;
+    border: 1px solid transparent;
+}
+
+.btn.clear:hover {
+    background: #dc2626;
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+/* Equals button */
+.btn.equals {
+    background: #10b981;
+    color: white;
+    border: 1px solid transparent;
+}
+
+.btn.equals:hover {
+    background: #059669;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+/* Zero button (wider) */
+.btn.zero {
+    grid-column: span 2;
+}
+
+/* ==========================================================================
+   History Section
+   ========================================================================== */
+
+.history-section {
+    background: white;
+    border-radius: 24px;
+    padding: 24px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    width: 280px;
+    max-width: 100%;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.history-section:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+}
+
+.history-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.history-header h3 {
+    font-size: 18px;
+    font-weight: 600;
+    color: #334155;
+}
+
+.clear-history-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 18px;
+    padding: 4px 8px;
+    border-radius: 6px;
+    transition: background 0.2s ease;
+    opacity: 0.7;
+}
+
+.clear-history-btn:hover {
+    background: #fee2e2;
+    opacity: 1;
+}
+
+.history-list {
+    max-height: 400px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e1 #f1f5f9;
+}
+
+/* Custom scrollbar for Webkit browsers */
+.history-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.history-list::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 3px;
+}
+
+.history-list::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 3px;
+}
+
+.history-list::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+
+/* History entries */
+.history-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    margin-bottom: 6px;
+    background: #f8fafc;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: 1px solid transparent;
+}
+
+.history-item:hover {
+    background: #f1f5f9;
+    border-color: #e2e8f0;
+    transform: translateX(4px);
+}
+
+.history-item:active {
+    transform: scale(0.99);
+}
+
+.history-entry {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.operation {
+    font-size: 14px;
+    color: #64748b;
+    font-family: 'Courier New', monospace;
+}
+
+.result {
+    font-size: 16px;
+    color: #1e293b;
+    font-weight: 500;
+}
+
+.timestamp {
+    font-size: 12px;
+    color: #94a3b8;
+    margin-left: 12px;
+    white-space: nowrap;
+}
+
+.history-empty {
+    text-align: center;
+    color: #94a3b8;
+    font-size: 14px;
+    padding: 20px;
+    font-style: italic;
+}
+
+/* ==========================================================================
+   Responsive Design
+   ========================================================================== */
+
+@media (max-width: 768px) {
+    .calculator-container {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .history-section {
+        width: 100%;
+        max-width: 320px;
+    }
+}
+
+@media (max-width: 480px) {
+    body {
+        padding: 10px;
+    }
+    
+    .calculator {
+        padding: 16px;
+        border-radius: 16px;
+        max-width: 100%;
+    }
+    
+    .history-section {
+        padding: 16px;
+        border-radius: 16px;
+    }
+    
+    #display {
+        height: 48px;
+        font-size: 24px;
+        padding: 0 12px;
+    }
+    
+    .btn {
+        height: 48px;
+        font-size: 18px;
+    }
+    
+    .buttons {
+        gap: 8px;
+    }
+    
+    .history-list {
+        max-height: 200px;
+    }
+    
+    .history-item {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 6px 10px;
+    }
+    
+    .timestamp {
+        margin-left: 0;
+        margin-top: 4px;
+    }
+}
+
+/* ==========================================================================
+   Dark Mode Support
+   ========================================================================== */
+
+@media (prefers-color-scheme: dark) {
+    body {
+        background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    }
+    
+    .calculator, .history-section {
+        background: #0f172a;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    }
+    
+    #display {
+        background: #1e293b;
+        color: #e2e8f0;
+        border: 1px solid #334155;
+    }
+    
+    #display:focus {
+        background: #1e2939;
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.3);
+    }
+    
+    .btn.number {
+        background: #1e293b;
+        color: #cbd5e1;
+        border-color: #334155;
+    }
+    
+    .btn.number:hover {
+        background: #334155;
+        border-color: #475569;
+    }
+    
+    .history-header h3 {
+        color: #e2e8f0;
+    }
+    
+    .clear-history-btn:hover {
+        background: #450a0a;
+    }
+    
+    .history-list {
+        scrollbar-color: #475569 #1e293b;
+    }
+    
+    .history-list::-webkit-scrollbar-track {
+        background: #1e293b;
+    }
+    
+    .history-list::-webkit-scrollbar-thumb {
+        background: #475569;
+    }
+    
+    .history-list::-webkit-scrollbar-thumb:hover {
+        background: #64748b;
+    }
+    
+    .history-item {
+        background: #1e293b;
+        border-color: transparent;
+    }
+    
+    .history-item:hover {
+        background: #334155;
+        border-color: #475569;
+    }
+    
+    .operation {
+        color: #94a3b8;
+    }
+    
+    .result {
+        color: #e2e8f0;
+    }
+    
+    .timestamp {
+        color: #64748b;
+    }
+    
+    .history-empty {
+        color: #64748b;
+    }
+}
+
+/* ==========================================================================
+   Accessibility Enhancements
+   ========================================================================== */
+
+/* Focus styles for improved keyboard navigation */
+.btn:focus-visible {
+    outline: 2px solid #6366f1;
+    outline-offset: 2px;
+}
+
+/* Reduced motion for users with corresponding settings */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+    
+    .btn::before {
+        transition: none;
+    }
+}
+
+/* High Contrast Mode Support */
+@media (prefers-contrast: high) {
+    .calculator {
+        border: 2px solid currentColor;
+    }
+    
+    .btn {
+        border: 1px solid currentColor;
+    }
+    
+    #display {
+        border: 1px solid currentColor;
+    }
+}

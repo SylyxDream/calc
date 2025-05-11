@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modern Calculator with History</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="calculator-container">
+        <div class="calculator">
+            <!-- Display area for current input/result -->
+            <div class="display">
+                <input type="text" id="display" readonly value="0" aria-label="Calculator display">
+            </div>
+            
+            <!-- Button grid for calculator keys -->
+            <div class="buttons">
+                <!-- First row: Clear, Backspace, Percent, Division -->
+                <button class="btn clear" onclick="clearDisplay()" aria-label="Clear all">C</button>
+                <button class="btn operator" onclick="deleteLast()" aria-label="Delete last character">⌫</button>
+                <button class="btn operator" onclick="appendToDisplay('%')" aria-label="Percent">%</button>
+                <button class="btn operator" onclick="appendToDisplay('/')" aria-label="Divide">÷</button>
+                
+                <!-- Second row: 7, 8, 9, Multiplication -->
+                <button class="btn number" onclick="appendToDisplay('7')" aria-label="Seven">7</button>
+                <button class="btn number" onclick="appendToDisplay('8')" aria-label="Eight">8</button>
+                <button class="btn number" onclick="appendToDisplay('9')" aria-label="Nine">9</button>
+                <button class="btn operator" onclick="appendToDisplay('*')" aria-label="Multiply">×</button>
+                
+                <!-- Third row: 4, 5, 6, Subtraction -->
+                <button class="btn number" onclick="appendToDisplay('4')" aria-label="Four">4</button>
+                <button class="btn number" onclick="appendToDisplay('5')" aria-label="Five">5</button>
+                <button class="btn number" onclick="appendToDisplay('6')" aria-label="Six">6</button>
+                <button class="btn operator" onclick="appendToDisplay('-')" aria-label="Subtract">−</button>
+                
+                <!-- Fourth row: 1, 2, 3, Addition -->
+                <button class="btn number" onclick="appendToDisplay('1')" aria-label="One">1</button>
+                <button class="btn number" onclick="appendToDisplay('2')" aria-label="Two">2</button>
+                <button class="btn number" onclick="appendToDisplay('3')" aria-label="Three">3</button>
+                <button class="btn operator" onclick="appendToDisplay('+')" aria-label="Add">+</button>
+                
+                <!-- Fifth row: 0, Decimal point, Equals -->
+                <button class="btn number zero" onclick="appendToDisplay('0')" aria-label="Zero">0</button>
+                <button class="btn number" onclick="appendToDisplay('.')" aria-label="Decimal point">.</button>
+                <button class="btn equals" onclick="calculate()" aria-label="Equals">=</button>
+            </div>
+        </div>
+        
+        <!-- History section -->
+        <div class="history-section">
+            <div class="history-header">
+                <h3>History</h3>
+                <button id="clearHistory" class="clear-history-btn" onclick="clearHistory()" aria-label="Clear history">
+                    🗑️
+                </button>
+            </div>
+            <div id="history" class="history-list">
+                <!-- History entries will be dynamically inserted here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /**
+         * Global variables for the calculator
+         */
+        let displayValue = '0';           // Current value in display
+        let shouldResetDisplay = false;   // Flag for display reset after calculation
+        let operationHistory = [];        // Array for calculation history
+        let lastResult = null;            // Last calculation result
+        let lastOperation = '';           // Last complete operation for history
+        let isWaitingForOperand = false;  // Flag to track if waiting for next operand
+
+        /**
+         * Updates the display value in the user interface
+         * @param {string} [value] - Optional value to display
+         */
+        function updateDisplay(value = displayValue) {
+            const displayElement = document.getElementById('display');
+            displayElement.value = value;
+            displayElement.setAttribute('aria-live', 'polite');
+        }
+
+        /**
+         * Clears the entire display and resets all values
+         */
+        function clearDisplay() {
+            try {
+                displayValue = '0';
+                shouldResetDisplay = false;
+                lastResult = null;
+                isWaitingForOperand = false;
+                updateDisplay();
+            } catch (error) {
+                handleError('Error clearing display', error);
+            }
+        }
+
+        /**
+         * Deletes the last character from the display
+         */
+        function deleteLast() {
+            try {
+                if (shouldResetDisplay) {
+                    clearDisplay();
+                    return;
+                }
+                
+                if (displayValue.length > 1) {
+                    displayValue = displayValue.slice(0, -1);
+                } else {
+                    displayValue = '0';
+                }
+                updateDisplay();
+            } catch (error) {
+                handleError('Error deleting last character', error);
+            }
+        }
+
+        /**
+         * Appends a value to the display
+         * @param {string} value - The value to be added
+         */
+        function appendToDisplay(value) {
+            try {
+                // If we just calculated and user enters an operator, continue with last result
+                if (shouldResetDisplay && (value === '+' || value === '-' || value === '*' || value === '/' || value === '%')) {
+                    if (lastResult !== null) {
+                        displayValue = lastResult.toString();
+                        shouldResetDisplay = false;
+                        isWaitingForOperand = true;
+                    }
+                }
+                // If we just calculated and user enters a number, start fresh
+                else if (shouldResetDisplay && !isNaN(value)) {
+                    displayValue = '0';
+                    shouldResetDisplay = false;
+                    lastResult = null;
+                }
+
+                // Input validation
+                if (!validateInput(value)) {
+                    return;
+                }
+
+                // Special handling for different inputs
+                if (displayValue === '0' && value !== '.') {
+                    displayValue = value;
+                } else {
+                    displayValue += value;
+                }
+                
+                updateDisplay();
+                
+                // If we added an operator, we're now waiting for the next operand
+                if (value === '+' || value === '-' || value === '*' || value === '/' || value === '%') {
+                    isWaitingForOperand = true;
+                }
+            } catch (error) {
+                handleError('Error appending input', error);
+            }
+        }
+
+        /**
+         * Validates user input
+         * @param {string} value - Input to validate
+         * @returns {boolean} - True if valid, false if invalid
+         */
+        function validateInput(value) {
+            // Prevent multiple decimal points
+            if (value === '.' && displayValue.includes('.')) {
+                return false;
+            }
+
+            // Prevent multiple operators in a row
+            const operators = ['+', '-', '*', '/', '%'];
+            const lastChar = displayValue.slice(-1);
+            if (operators.includes(value) && operators.includes(lastChar)) {
+                // Allow minus after other operators for negative numbers
+                if (!(value === '-' && lastChar !== '-')) {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        /**
+         * Performs the calculation and displays the result
+         */
+        function calculate() {
+            try {
+                let expression = displayValue;
+                
+                // Record the original expression for history
+                lastOperation = expression;
+                
+                // Replace display symbols with JavaScript operators
+                expression = expression.replace(/×/g, '*');
+                expression = expression.replace(/÷/g, '/');
+                expression = expression.replace(/−/g, '-');
+                
+                // Validate the expression before calculation
+                if (!validateExpression(expression)) {
+                    throw new Error('Invalid mathematical expression');
+                }
+                
+                // Perform the calculation
+                const result = evalExpression(expression);
+                
+                // Format the result
+                const formattedResult = formatResult(result);
+                
+                // Save the operation in history
+                if (lastOperation) {
+                    addToHistory(lastOperation, formattedResult);
+                }
+                
+                // Store the last result for continued operations
+                lastResult = result;
+                displayValue = formattedResult;
+                shouldResetDisplay = true;
+                isWaitingForOperand = false;
+                updateDisplay();
+                
+            } catch (error) {
+                handleError('Calculation error', error);
+                displayValue = 'Error';
+                shouldResetDisplay = true;
+                updateDisplay();
+            }
+        }
+
+        /**
+         * Validates a mathematical expression
+         * @param {string} expression - Expression to validate
+         * @returns {boolean} - True if valid, false if invalid
+         */
+        function validateExpression(expression) {
+            // Check for invalid characters
+            if (!/^[-+*/().\d%\s]+$/.test(expression)) {
+                return false;
+            }
+            
+            // Check for incomplete operations
+            if (/[+\-*/]$/.test(expression.trim())) {
+                return false;
+            }
+            
+            // Check for division by zero
+            if (expression.includes('/0')) {
+                throw new Error('Division by zero is not allowed');
+            }
+            
+            return true;
+        }
+
+        /**
+         * Performs evaluation of a mathematical expression
+         * @param {string} expression - Expression to calculate
+         * @returns {number} - Calculated result
+         */
+        function evalExpression(expression) {
+            // Safer evaluation approach instead of eval()
+            // In production, a parser library should be used
+            try {
+                // Remove whitespace
+                expression = expression.replace(/\s/g, '');
+                
+                // Use Function constructor for safer evaluation
+                const func = new Function('return ' + expression);
+                const result = func();
+                
+                // Check for valid result
+                if (!isFinite(result)) {
+                    throw new Error('Invalid calculation result');
+                }
+                
+                return result;
+            } catch (error) {
+                throw new Error('Calculation error: ' + error.message);
+            }
+        }
+
+        /**
+         * Formats the result for display
+         * @param {number} result - Result to format
+         * @returns {string} - Formatted result
+         */
+        function formatResult(result) {
+            // Round to maximum 10 decimal places
+            const rounded = Math.round(result * 10000000000) / 10000000000;
+            
+            // Scientific notation for very large/small numbers
+            if (Math.abs(rounded) > 999999999999 || Math.abs(rounded) < 0.0000000001) {
+                return rounded.toExponential(6);
+            }
+            
+            // Normal representation
+            return rounded.toString();
+        }
+
+        /**
+         * Adds an operation to the history
+         * @param {string} operation - The operation
+         * @param {string} result - The result
+         */
+        function addToHistory(operation, result) {
+            try {
+                const timestamp = new Date().toLocaleTimeString('en-US', { 
+                    hour: '2-digit', 
+                    minute: '2-digit' 
+                });
+                
+                const historyItem = {
+                    operation: operation,
+                    result: result,
+                    timestamp: timestamp
+                };
+                
+                operationHistory.unshift(historyItem); // Newest first
+                
+                // Limit history to 50 entries
+                if (operationHistory.length > 50) {
+                    operationHistory = operationHistory.slice(0, 50);
+                }
+                
+                updateHistoryDisplay();
+            } catch (error) {
+                handleError('Error adding to history', error);
+            }
+        }
+
+        /**
+         * Updates the history display
+         */
+        function updateHistoryDisplay() {
+            try {
+                const historyElement = document.getElementById('history');
+                historyElement.innerHTML = '';
+                
+                if (operationHistory.length === 0) {
+                    historyElement.innerHTML = '<div class="history-empty">No calculations yet</div>';
+                    return;
+                }
+                
+                operationHistory.forEach((item, index) => {
+                    const historyItem = document.createElement('div');
+                    historyItem.className = 'history-item';
+                    historyItem.innerHTML = `
+                        <div class="history-entry">
+                            <div class="operation">${item.operation}</div>
+                            <div class="result">${item.result}</div>
+                        </div>
+                        <div class="timestamp">${item.timestamp}</div>
+                    `;
+                    
+                    // Click event to display operation again
+                    historyItem.addEventListener('click', () => {
+                        displayValue = item.result;
+                        lastResult = parseFloat(item.result);
+                        shouldResetDisplay = false;
+                        updateDisplay();
+                    });
+                    
+                    historyElement.appendChild(historyItem);
+                });
+            } catch (error) {
+                handleError('Error updating history display', error);
+            }
+        }
+
+        /**
+         * Clears the complete history
+         */
+        function clearHistory() {
+            try {
+                operationHistory = [];
+                updateHistoryDisplay();
+            } catch (error) {
+                handleError('Error clearing history', error);
+            }
+        }
+
+        /**
+         * Central error handling
+         * @param {string} message - Error message
+         * @param {Error} error - Error object
+         */
+        function handleError(message, error) {
+            console.error(`${message}:`, error);
+            
+            // Optional: Send error to server (in production environment)
+            // sendErrorToServer(message, error);
+            
+            // Display user-friendly error message
+            if (message.includes('Display') || message.includes('History')) {
+                // Handle silent errors
+                return;
+            }
+            
+            // Show error in display for calculation-related errors
+            displayValue = 'Error';
+            shouldResetDisplay = true;
+            updateDisplay();
+        }
+
+        /**
+         * Keyboard event handler
+         * Supports keyboard input for better usability
+         */
+        document.addEventListener('keydown', function(event) {
+            try {
+                const key = event.key;
+                
+                // Prevent default behavior for certain keys
+                if (key === '/' || key === '*' || key === '+' || key === '-') {
+                    event.preventDefault();
+                }
+                
+                // Numbers and decimal point
+                if ((key >= '0' && key <= '9') || key === '.') {
+                    appendToDisplay(key);
+                }
+                // Operators
+                else if (key === '+' || key === '-') {
+                    appendToDisplay(key);
+                }
+                else if (key === '*') {
+                    appendToDisplay('*');
+                }
+                else if (key === '/') {
+                    appendToDisplay('/');
+                }
+                else if (key === '%') {
+                    appendToDisplay('%');
+                }
+                // Calculations
+                else if (key === 'Enter' || key === '=') {
+                    calculate();
+                }
+                // Clear
+                else if (key === 'Escape' || key === 'c' || key === 'C') {
+                    clearDisplay();
+                }
+                else if (key === 'Backspace') {
+                    deleteLast();
+                }
+                // Clear history (Ctrl+H)
+                else if (event.ctrlKey && key === 'h') {
+                    event.preventDefault();
+                    clearHistory();
+                }
+            } catch (error) {
+                handleError('Error handling keyboard input', error);
+            }
+        });
+
+        /**
+         * Initialization when the page loads
+         */
+        document.addEventListener('DOMContentLoaded', function() {
+            try {
+                // Initial display update
+                updateDisplay();
+                
+                // Initial history display
+                updateHistoryDisplay();
+                
+                // Set focus on display for keyboard input
+                document.getElementById('display').focus();
+                
+                console.log('Calculator successfully initialized');
+            } catch (error) {
+                handleError('Error during initialization', error);
+            }
+        });
+    </script>
+</body>
+</html>
