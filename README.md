@@ -19,12 +19,12 @@ A sleek, responsive calculator built with vanilla JavaScript, featuring a calcul
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/modern-calculator.git
+git clone https://github.com/sylyxdream/modernCalc.git
 ```
 
 2. Navigate to the project directory:
 ```bash
-cd modern-calculator
+cd modernCalc
 ```
 
 3. Open `index.html` in your preferred browser or serve it using a local server.
@@ -50,7 +50,7 @@ cd modern-calculator
 ## 📁 Project Structure
 
 ```
-modern-calculator/
+modernCalc/
 │
 ├── index.html          # Main HTML file
 ├── styles.css          # All styling and responsive design
